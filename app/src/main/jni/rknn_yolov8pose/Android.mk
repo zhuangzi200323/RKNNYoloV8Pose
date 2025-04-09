@@ -18,7 +18,7 @@ LOCAL_SHARED_LIBRARIES += rknnrt-shared
 LOCAL_STATIC_LIBRARIES += rga-static
 LOCAL_STATIC_LIBRARIES += turbojpeg-static
 
-LOCAL_MODULE    := rknn_yolov8
+LOCAL_MODULE    := rknn_yolov8pose
 LOCAL_SRC_FILES :=  \
 	utils/file_utils.c \
 	utils/image_drawing.c \

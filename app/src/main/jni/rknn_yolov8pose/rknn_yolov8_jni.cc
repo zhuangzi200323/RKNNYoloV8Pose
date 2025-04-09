@@ -9,6 +9,8 @@
 #include "yolov8-pose.h"
 #include "postprocess.h"
 #include "utils/image_drawing.h"
+// extern 使用全局变量
+extern int skeleton[38];
 
 extern "C" {
 
@@ -29,7 +31,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_sq_rknn_rknnyolov8_YoloV8Detect_init(JNIEnv *env, jobject thiz, jstring jmodel_path,
+Java_com_sq_rknn_rknnyolov8pose_YoloV8PoseDetect_init(JNIEnv *env, jobject thiz, jstring jmodel_path,
                                                 jstring jlabel_list_path, jboolean juse_zero_copy) {
     int ret;
     const char *modelPath = (env->GetStringUTFChars(jmodel_path, 0));
@@ -52,7 +54,7 @@ Java_com_sq_rknn_rknnyolov8_YoloV8Detect_init(JNIEnv *env, jobject thiz, jstring
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_sq_rknn_rknnyolov8_YoloV8Detect_detect(JNIEnv *env, jobject thiz, jobject jbitmap) {
+Java_com_sq_rknn_rknnyolov8pose_YoloV8PoseDetect_detect(JNIEnv *env, jobject thiz, jobject jbitmap) {
     AndroidBitmapInfo dstInfo;
 
     if (ANDROID_BITMAP_RESULT_SUCCESS != AndroidBitmap_getInfo(env, jbitmap, &dstInfo)) {
@@ -118,6 +120,16 @@ Java_com_sq_rknn_rknnyolov8_YoloV8Detect_detect(JNIEnv *env, jobject thiz, jobje
 
         sprintf(text, "%s %.1f%%", coco_cls_to_name(det_result->cls_id), det_result->prop * 100);
         draw_text(&src_image, text, x1, y1 - 20, COLOR_RED, 10);
+        for (int j = 0; j < 38/2; ++j)
+        {
+            draw_line(&src_image, (int)(det_result->keypoints[skeleton[2*j]-1][0]),(int)(det_result->keypoints[skeleton[2*j]-1][1]),
+                      (int)(det_result->keypoints[skeleton[2*j+1]-1][0]),(int)(det_result->keypoints[skeleton[2*j+1]-1][1]),COLOR_ORANGE,3);
+        }
+
+        for (int j = 0; j < 17; ++j)
+        {
+            draw_circle(&src_image, (int)(det_result->keypoints[j][0]),(int)(det_result->keypoints[j][1]),1, COLOR_YELLOW,1);
+        }
     }
 
     AndroidBitmap_unlockPixels(env, jbitmap);
@@ -126,7 +138,7 @@ Java_com_sq_rknn_rknnyolov8_YoloV8Detect_detect(JNIEnv *env, jobject thiz, jobje
 }
 
 JNIEXPORT jobject JNICALL
-Java_com_sq_rknn_rknnyolov8_YoloV8Detect_detect2(JNIEnv *env, jobject thiz, jobject jbitmap) {
+Java_com_sq_rknn_rknnyolov8pose_YoloV8PoseDetect_detect2(JNIEnv *env, jobject thiz, jobject jbitmap) {
     AndroidBitmapInfo dstInfo;
 
     if (ANDROID_BITMAP_RESULT_SUCCESS != AndroidBitmap_getInfo(env, jbitmap, &dstInfo)) {
@@ -182,6 +194,17 @@ Java_com_sq_rknn_rknnyolov8_YoloV8Detect_detect2(JNIEnv *env, jobject thiz, jobj
 
         sprintf(text, "%s %.1f%%", coco_cls_to_name(det_result->cls_id), det_result->prop * 100);
         draw_text(&src_image, text, x1, y1 - 20, COLOR_RED, 10);
+
+        for (int j = 0; j < 38/2; ++j)
+        {
+            draw_line(&src_image, (int)(det_result->keypoints[skeleton[2*j]-1][0]),(int)(det_result->keypoints[skeleton[2*j]-1][1]),
+                      (int)(det_result->keypoints[skeleton[2*j+1]-1][0]),(int)(det_result->keypoints[skeleton[2*j+1]-1][1]),COLOR_ORANGE,3);
+        }
+
+        for (int j = 0; j < 17; ++j)
+        {
+            draw_circle(&src_image, (int)(det_result->keypoints[j][0]),(int)(det_result->keypoints[j][1]),1, COLOR_YELLOW,1);
+        }
     }
 
     AndroidBitmap_unlockPixels(env, jbitmap);
@@ -211,7 +234,7 @@ Java_com_sq_rknn_rknnyolov8_YoloV8Detect_detect2(JNIEnv *env, jobject thiz, jobj
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_sq_rknn_rknnyolov8_YoloV8Detect_release(JNIEnv *env, jobject thiz) {
+Java_com_sq_rknn_rknnyolov8pose_YoloV8PoseDetect_release(JNIEnv *env, jobject thiz) {
     deinit_post_process();
 
     int ret = use_zero_copy ? release_yolov8_pose_model(&rknn_app_ctx)
